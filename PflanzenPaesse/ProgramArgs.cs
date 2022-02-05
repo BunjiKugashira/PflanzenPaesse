@@ -1,14 +1,9 @@
 ﻿namespace PflanzenPaesse
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     using PflanzenPaesse.Repositories.ExcelRepository;
-    using PflanzenPaesse.Repositories.WordRepository;
     using PflanzenPaesse.Validators;
 
     using PowerArgs;
@@ -38,7 +33,7 @@
 
             var highestRowNumber = ExcelRepository.HighestUsedRowNumber(InputFile, "Januar");
             var rowsToProcess = NumberRangeValidator.Parse(Rows, 2, highestRowNumber);
-            var data = ExcelRepository.Import(InputFile, "Januar");
+            var data = ExcelRepository.Import(InputFile, "Januar").ToList();
         }
     }
 }
