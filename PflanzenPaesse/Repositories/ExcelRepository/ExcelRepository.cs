@@ -19,6 +19,7 @@
 
         public static IEnumerable<IDictionary<string, string>> Import(string fileName, string tableName)
         {
+            Console.WriteLine("Importing worksheet...");
             using var spreadsheetDocument = SpreadsheetDocument.Open(fileName, false);
             var workBook = spreadsheetDocument.WorkbookPart;
             var workSheet = GetWorkSheets(workBook)[tableName];
@@ -29,7 +30,6 @@
             foreach (var row in sheetData.Elements<Row>())
             {
                 var cells = row.Elements<Cell>();
-                Console.WriteLine(string.Join(" ", cells.Select(cell => cell.CellValue?.InnerText)));
                 if (headers == null)
                 {
                     headers = cells.ToDictionary(cell => cell.CellReference.Value, cell => GetCellValueAsString(cell, sharedStrings));
@@ -44,10 +44,11 @@
 
         public static int HighestUsedRowNumber(string fileName, string tableName)
         {
+            Console.WriteLine("Counting rows...");
             using var spreadsheetDocument = SpreadsheetDocument.Open(fileName, false);
             var workBook = spreadsheetDocument.WorkbookPart;
-            var workSheet = workBook.WorksheetParts.First();
-            var sheetData = workSheet.Worksheet.Elements<SheetData>().First();
+            var workSheet = GetWorkSheets(workBook)[tableName];
+            var sheetData = workSheet.Worksheet.Elements<SheetData>().Single();
 
             return sheetData.Elements<Row>().Count();
         }

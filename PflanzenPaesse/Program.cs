@@ -1,16 +1,17 @@
 ﻿namespace PflanzenPaesse
 {
     using System;
+    using System.Threading.Tasks;
 
     using PowerArgs;
 
     public static class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             try
             {
-                Args.InvokeMain<ProgramArgs>(args);
+                await Args.InvokeMainAsync<ProgramArgs>(args);
                 Console.WriteLine("Finished");
             }
             catch(Exception e)
