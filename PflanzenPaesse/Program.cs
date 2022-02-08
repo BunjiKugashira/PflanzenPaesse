@@ -7,14 +7,14 @@
 
     public static class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             try
             {
                 await Args.InvokeMainAsync<ProgramArgs>(args);
                 Console.WriteLine("Finished");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(e);
