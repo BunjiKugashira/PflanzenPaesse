@@ -14,14 +14,14 @@
 
     [TabCompletion]
     public class ProgramArgs
-    {        
+    {
         [HelpHook, ArgShortcut("-?"), ArgDescription("Shows this help.")]
         public bool Help { get; set; }
 
-        [ArgPosition(0), ArgRequired(PromptIfMissing =true), FileInputValidator, ArgShortcut("-i"), ArgDescription("The excel file used for input.")]
+        [ArgPosition(0), ArgRequired(PromptIfMissing = true), FileInputValidator, ArgShortcut("-i"), ArgDescription("The excel file used for input.")]
         public string InputFile { get; set; }
 
-        [ArgPosition(1), ArgRequired(PromptIfMissing =true), ArgShortcut("-s"), ArgDescription("The sheet used for input.")]
+        [ArgPosition(1), ArgRequired(PromptIfMissing = true), ArgShortcut("-s"), ArgDescription("The sheet used for input.")]
         public string Sheet { get; set; }
 
         [ArgPosition(2), FileOutputValidator, ArgShortcut("-o"), ArgDescription("The word file used for output.")]
@@ -35,28 +35,28 @@
 
         public async Task Main()
         {
-            var outputFilePath = string.IsNullOrEmpty(OutputFile) ? FileOutputValidator.FixPath(InputFile) : OutputFile;
+            var outputFilePath = string.IsNullOrEmpty(this.OutputFile) ? FileOutputValidator.FixPath(this.InputFile) : this.OutputFile;
 
-            Console.WriteLine($"InputFile: {InputFile}");
+            Console.WriteLine($"InputFile: {this.InputFile}");
             Console.WriteLine($"OutputFile: {outputFilePath}");
-            Console.WriteLine($"ProcessLines: {string.Join(", ", NumberRangeValidator.Parse(Rows, ExcelRepository.MinRowIndex, 10))}");
+            Console.WriteLine($"ProcessLines: {string.Join(", ", NumberRangeValidator.Parse(this.Rows, ExcelRepository.MinRowIndex, 10))}");
 
-            var highestRowNumber = ExcelRepository.HighestUsedRowNumber(InputFile, Sheet);
-            var rowsToProcess = NumberRangeValidator.Parse(Rows, 2, highestRowNumber);
-            var data = ExcelRepository.Import(InputFile, Sheet).ToList();
+            var highestRowNumber = ExcelRepository.HighestUsedRowNumber(this.InputFile, this.Sheet);
+            var rowsToProcess = NumberRangeValidator.Parse(this.Rows, 2, highestRowNumber);
+            var data = ExcelRepository.Import(this.InputFile, this.Sheet).ToList();
 
             data = data.Where((row, id) => rowsToProcess.Contains(id + 2)).ToList();
 
             var constants = ConstantsRepository.Import();
-            foreach(var datum in data)
+            foreach (var datum in data)
             {
-                foreach(var constant in constants)
+                foreach (var constant in constants)
                 {
                     datum.TryAdd(constant.Key, constant.Value);
                 }
             }
 
-            await WordRepository.BuildPaesseAsync(@".\Templates\PflanzenpassTemplate.docx", data, outputFilePath, MaxPassportsPerPage);
+            await WordRepository.BuildPaesseAsync(@".\Templates\PflanzenpassTemplate.docx", data, outputFilePath, this.MaxPassportsPerPage);
         }
     }
 }
