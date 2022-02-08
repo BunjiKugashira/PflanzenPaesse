@@ -25,17 +25,6 @@
             Console.WriteLine("Grabbing images...");
             var templateImageParts = templateMainPart.ImageParts;
 
-            Console.WriteLine("Inserting values...");
-            var alteredBodies = mapping.Select(map =>
-            {
-                var text = templateBody.OuterXml;
-                foreach(var kvPair in map)
-                {
-                    text = text.Replace($"${{{kvPair.Key}}}", kvPair.Value);
-                }
-                return new Body(text);
-            });
-
             Console.WriteLine("Creating output file...");
             using var outputWordDocument = WordprocessingDocument.Create(outputFileName, WordprocessingDocumentType.Document);
             var outputMainPart = outputWordDocument.AddMainDocumentPart();
@@ -43,15 +32,32 @@
             var outputBody = outputMainPart.Document.AppendChild(new Body());
 
             Console.WriteLine("Adding images...");
-            foreach(var image in templateImageParts)
+            var templateToOutputImageParts = templateImageParts.ToDictionary(
+                image => image,
+                image => outputMainPart.AddPart(image));
+            var templateToOutputImageIds = templateToOutputImageParts.ToDictionary(
+                kvPair => templateMainPart.GetIdOfPart(kvPair.Key),
+                kvPair => outputMainPart.GetIdOfPart(kvPair.Value));
+
+            Console.WriteLine("Inserting values...");
+            var alteredBodies = mapping.Select(map =>
             {
-                outputMainPart.AddPart(image);
-            }
+                var text = templateBody.OuterXml;
+                foreach (var kvPair in map)
+                {
+                    text = text.Replace($"${{{kvPair.Key}}}", kvPair.Value);
+                }
+                foreach(var kvPair in templateToOutputImageIds)
+                {
+                    text = text.Replace($@"embed=""{kvPair.Key}""", $@"embed=""{kvPair.Value}""");
+                }
+                return new Body(text);
+            });
 
             Console.WriteLine("Adding text...");
-            foreach(var alteredBody in alteredBodies)
+            foreach (var alteredBody in alteredBodies)
             {
-                foreach(var child in alteredBody.ChildElements.OfType<Paragraph>())
+                foreach (var child in alteredBody.ChildElements.OfType<Paragraph>())
                 {
                     outputBody.AppendChild(new Paragraph(child.OuterXml));
                 }
