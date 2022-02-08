@@ -20,7 +20,7 @@
             var ranges = arg.Split(',');
             var rangeIndicators = ranges.Select(range => range.Split('-').Select(indicator => indicator.Trim()));
 
-            foreach(var rangeIndicator in rangeIndicators)
+            foreach (var rangeIndicator in rangeIndicators)
             {
                 if (rangeIndicator.Count() == 1)
                 {

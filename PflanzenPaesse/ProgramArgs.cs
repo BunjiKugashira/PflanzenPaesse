@@ -30,6 +30,9 @@
         [ArgPosition(3), ArgDefaultValue("-"), ArgShortcut("-r"), ArgDescription("The rows to be processed.\nSeveral rows can be separated by ',' and ranges can be added by writing the first row (inclusive) and last row (inclusive) separated by '-'. A range can be left open on either side by not including a number."), ArgExample("1,2,5-7, 9-", "Process rows 1, 2, 5, 6, 7, 9 and all rows after that.")]
         public string Rows { get; set; }
 
+        [ArgDefaultValue(3), ArgShortcut("-b"), ArgDescription("Insert a page-break after x passports.")]
+        public uint MaxPassportsPerPage { get; set; }
+
         public async Task Main()
         {
             var outputFilePath = string.IsNullOrEmpty(OutputFile) ? FileOutputValidator.FixPath(InputFile) : OutputFile;
@@ -53,7 +56,7 @@
                 }
             }
 
-            await WordRepository.BuildPaesseAsync(@".\Templates\PflanzenpassTemplate.docx", data, outputFilePath);
+            await WordRepository.BuildPaesseAsync(@".\Templates\PflanzenpassTemplate.docx", data, outputFilePath, MaxPassportsPerPage);
         }
     }
 }

@@ -12,9 +12,9 @@
 
     public static class WordRepository
     {
-        public static readonly string[] AllowedFileEndings = {"docx"};
+        public static readonly string[] AllowedFileEndings = { "docx" };
 
-        public static async Task BuildPaesseAsync(string templateFileName, IEnumerable<IDictionary<string, string>> mapping, string outputFileName)
+        public static async Task BuildPaesseAsync(string templateFileName, IEnumerable<IDictionary<string, string>> mapping, string outputFileName, uint maxBodiesPerPage)
         {
             Console.WriteLine("Importing template...");
             using var templateWordDocument = WordprocessingDocument.Open(templateFileName, false);
@@ -50,7 +50,7 @@
                 {
                     text = text.Replace($"${{{kvPair.Key}}}", kvPair.Value);
                 }
-                foreach(var kvPair in templateToOutputImageIds)
+                foreach (var kvPair in templateToOutputImageIds)
                 {
                     text = text.Replace($@"embed=""{kvPair.Key}""", $@"embed=""{kvPair.Value}""");
                 }
@@ -58,12 +58,18 @@
             });
 
             Console.WriteLine("Adding text...");
+            var i = 0u;
             foreach (var alteredBody in alteredBodies)
             {
                 foreach (var child in alteredBody.ChildElements.OfType<Paragraph>())
                 {
                     outputBody.AppendChild(new Paragraph(child.OuterXml));
                 }
+                if (i == maxBodiesPerPage - 1)
+                {
+                    outputBody.AppendChild(new Paragraph(new Run(new Break { Type = BreakValues.Page })));
+                }
+                i = (i + 1) % maxBodiesPerPage;
             }
 
             Console.WriteLine("Exporting document...");
