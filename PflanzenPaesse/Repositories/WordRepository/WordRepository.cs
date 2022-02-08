@@ -28,8 +28,11 @@
             Console.WriteLine("Creating output file...");
             using var outputWordDocument = WordprocessingDocument.Create(outputFileName, WordprocessingDocumentType.Document);
             var outputMainPart = outputWordDocument.AddMainDocumentPart();
-            outputMainPart.Document = new Document();
-            var outputBody = outputMainPart.Document.AppendChild(new Body());
+            outputMainPart.Document = new Document(templateDocument.OuterXml);
+            var outputDocument = outputMainPart.Document;
+            outputDocument.Body = null;
+            var outputBody = outputDocument.AppendChild(new Body(templateBody.OuterXml));
+            outputBody.RemoveAllChildren<Paragraph>();
 
             Console.WriteLine("Adding images...");
             var templateToOutputImageParts = templateImageParts.ToDictionary(
