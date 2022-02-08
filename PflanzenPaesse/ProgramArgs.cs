@@ -53,9 +53,7 @@
                 }
             }
 
-            var template = WordRepository.Import(@".\Templates\PflanzenpassTemplate.docx");
-            var paesse = data.Select(datum => WordRepository.Replace(template, datum));
-            await WordRepository.ExportAsync(OutputFile, paesse);
+            await WordRepository.BuildPaesseAsync(@".\Templates\PflanzenpassTemplate.docx", data, outputFilePath);
         }
     }
 }

@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
 
     using DocumentFormat.OpenXml;
@@ -15,45 +14,52 @@
     {
         public static readonly string[] AllowedFileEndings = {"docx"};
 
-        public static Body Import(string fileName)
+        public static async Task BuildPaesseAsync(string templateFileName, IEnumerable<IDictionary<string, string>> mapping, string outputFileName)
         {
             Console.WriteLine("Importing template...");
-            using var wordDocument = WordprocessingDocument.Open(fileName, false);
-            var mainPart = wordDocument.MainDocumentPart;
-            var document = mainPart.Document;
-            var body = document.Body;
-            return body;
-        }
+            using var templateWordDocument = WordprocessingDocument.Open(templateFileName, false);
+            var templateMainPart = templateWordDocument.MainDocumentPart;
+            var templateDocument = templateMainPart.Document;
+            var templateBody = templateDocument.Body;
 
-        public static Body Replace(Body body, IDictionary<string, string> mapping)
-        {
+            Console.WriteLine("Grabbing images...");
+            var templateImageParts = templateMainPart.ImageParts;
+
             Console.WriteLine("Inserting values...");
-            foreach(var map in mapping)
+            var alteredBodies = mapping.Select(map =>
             {
-                var text = body.OuterXml;
-                text = text.Replace($"${{{map.Key}}}", map.Value);
-                body = new Body(text);
+                var text = templateBody.OuterXml;
+                foreach(var kvPair in map)
+                {
+                    text = text.Replace($"${{{kvPair.Key}}}", kvPair.Value);
+                }
+                return new Body(text);
+            });
+
+            Console.WriteLine("Creating output file...");
+            using var outputWordDocument = WordprocessingDocument.Create(outputFileName, WordprocessingDocumentType.Document);
+            var outputMainPart = outputWordDocument.AddMainDocumentPart();
+            outputMainPart.Document = new Document();
+            var outputBody = outputMainPart.Document.AppendChild(new Body());
+
+            Console.WriteLine("Adding images...");
+            foreach(var image in templateImageParts)
+            {
+                outputMainPart.AddPart(image);
             }
 
-            return body;
-        }
-
-        public static async Task ExportAsync(string filename, IEnumerable<Body> bodies)
-        {
-            Console.WriteLine("Exporting document...");
-            using var wordDocument = WordprocessingDocument.Create(filename, WordprocessingDocumentType.Document);
-            var mainPart = wordDocument.AddMainDocumentPart();
-            mainPart.Document = new Document();
-            var body = mainPart.Document.AppendChild(new Body());
-            foreach(var insertBody in bodies)
+            Console.WriteLine("Adding text...");
+            foreach(var alteredBody in alteredBodies)
             {
-                foreach(var child in insertBody.ChildElements.OfType<Paragraph>())
+                foreach(var child in alteredBody.ChildElements.OfType<Paragraph>())
                 {
-                    body.AppendChild(new Paragraph(child.OuterXml));
+                    outputBody.AppendChild(new Paragraph(child.OuterXml));
                 }
             }
-            using var writer = new StreamWriter(wordDocument.MainDocumentPart.GetStream(FileMode.Create));
-            await writer.FlushAsync();
+
+            Console.WriteLine("Exporting document...");
+            using var outputWriter = new StreamWriter(outputMainPart.GetStream(FileMode.Create));
+            await outputWriter.FlushAsync();
         }
     }
 }
