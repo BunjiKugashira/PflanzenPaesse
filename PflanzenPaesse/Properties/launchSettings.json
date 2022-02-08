@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "PflanzenPaesse": {
+      "commandName": "Project",
+      "commandLineArgs": "\"E:\\dev\\PflanzenPaesse\\Examples\\Pflanzenpass-Generator 2022.xlsx\" \"Januar\" \"E:\\dev\\PflanzenPaesse\\Examples\\Output\" \"9-19\"",
+      "nativeDebugging": false
+    }
+  }
+}
